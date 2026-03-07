@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Users, ArrowRight } from 'lucide-react';
+import { Clock, Users, ArrowRight, Menu, User, Flame, Wand2, Crown } from 'lucide-react';
 
 const PREDICTIONS = [
   {
     id: 1,
-    question: 'Will ChatGPT 6 be released in 2026?',
+    question: 'Will India win the 2026 T20 World Cup?',
     yesPercent: 62,
     noPercent: 38,
     total: '12,431',
-    resolvesIn: '287 days'
+    resolvesIn: '1 day'
   },
   {
     id: 2,
@@ -29,7 +29,11 @@ const PREDICTIONS = [
   }
 ];
 
-const TABS = ['Feed', 'Leaderboard', 'Create'];
+const BOTTOM_TABS = [
+  { id: 'home', label: 'Home', icon: Flame, index: 0 },
+  { id: 'create', label: 'Create', icon: Wand2, index: 1 },
+  { id: 'leaderboard', label: 'Leaderboard', icon: Crown, index: 2 }
+];
 
 const AmbientBackground = () => {
   return (
@@ -83,7 +87,7 @@ export default function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPulsing, setIsPulsing] = useState(false);
   const [selectedVote, setSelectedVote] = useState(null);
-  const [activeTab, setActiveTab] = useState('Feed');
+  const [activeTab, setActiveTab] = useState('home');
 
   const currentPrediction = PREDICTIONS[currentIndex];
 
@@ -105,44 +109,27 @@ export default function App() {
       <div className="w-full max-w-[480px] relative min-h-screen border-x border-white/[0.04] bg-[#020202] overflow-hidden flex flex-col shadow-2xl">
         <AmbientBackground />
 
-        <header className="relative z-40 pt-8 px-6">
-          <div className="flex justify-between items-center bg-white/[0.02] backdrop-blur-2xl border border-white/[0.05] rounded-full p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+        <header className="relative z-40 pt-10 px-6">
+          <div className="flex justify-between items-center">
+            <button className="p-3 text-white/70 hover:text-white transition-all outline-none rounded-full bg-white/[0.02] hover:bg-white/[0.08] border border-white/[0.05] backdrop-blur-xl group shadow-[0_4px_16px_rgba(0,0,0,0.2)]">
+              <Menu size={20} className="group-hover:scale-110 transition-transform duration-300" />
+            </button>
+
             <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="pl-4 text-[11px] font-bold tracking-[0.3em] text-white/90 uppercase"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-2xl font-black tracking-[0.2em] text-white uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
             >
-              Vision
+              VISION
             </motion.div>
 
-            <nav className="flex items-center gap-1">
-              {TABS.map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className="relative px-4 py-2 text-[12px] font-medium tracking-wide transition-colors outline-none"
-                >
-                  {activeTab === tab && (
-                    <motion.div
-                      layoutId="active-pill"
-                      className="absolute inset-0 bg-white/10 rounded-full border border-white/10 shadow-[0_0_15px_rgba(255,255,255,0.05)]"
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                  <span
-                    className={`relative z-10 ${
-                      activeTab === tab ? 'text-white' : 'text-white/40 hover:text-white/70'
-                    }`}
-                  >
-                    {tab}
-                  </span>
-                </button>
-              ))}
-            </nav>
+            <button className="p-3 text-white/70 hover:text-white transition-all outline-none rounded-full bg-white/[0.02] hover:bg-white/[0.08] border border-white/[0.05] backdrop-blur-xl group shadow-[0_4px_16px_rgba(0,0,0,0.2)]">
+              <User size={20} className="group-hover:scale-110 transition-transform duration-300" />
+            </button>
           </div>
         </header>
 
-        <main className="relative z-20 flex-1 flex flex-col justify-center px-4 pb-12">
+        <main className="relative z-20 flex-1 flex flex-col justify-center px-4 pb-28">
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: isPulsing ? 1 : 0, scale: isPulsing ? 1.4 : 0.8 }}
@@ -205,10 +192,9 @@ export default function App() {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleVote('yes')}
                     className={`group relative flex-1 py-5 rounded-[2rem] font-semibold text-[15px] tracking-wide transition-all duration-500 overflow-hidden
-                      ${
-                        selectedVote === 'yes'
-                          ? 'bg-white text-black scale-95 shadow-[0_0_60px_rgba(255,255,255,0.4)]'
-                          : 'bg-white/95 text-black shadow-[0_8px_32px_rgba(255,255,255,0.15)] hover:bg-white hover:shadow-[0_12px_40px_rgba(255,255,255,0.35),0_0_30px_rgba(255,255,255,0.2)]'
+                      ${selectedVote === 'yes'
+                        ? 'bg-white text-black scale-95 shadow-[0_0_60px_rgba(255,255,255,0.4)]'
+                        : 'bg-white/95 text-black shadow-[0_8px_32px_rgba(255,255,255,0.15)] hover:bg-white hover:shadow-[0_12px_40px_rgba(255,255,255,0.35),0_0_30px_rgba(255,255,255,0.2)]'
                       }
                       ${selectedVote === 'no' ? 'opacity-20 grayscale scale-95' : 'opacity-100'}
                     `}
@@ -241,10 +227,9 @@ export default function App() {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleVote('no')}
                     className={`group relative flex-1 py-5 rounded-[2rem] font-semibold text-[15px] tracking-wide transition-all duration-500 overflow-hidden backdrop-blur-xl
-                      ${
-                        selectedVote === 'no'
-                          ? 'bg-white/10 border-white/30 text-white scale-95 shadow-[0_0_40px_rgba(255,255,255,0.15)]'
-                          : 'bg-white/[0.02] border border-white/[0.06] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] text-white/80 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.15] hover:shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_20px_rgba(255,255,255,0.05),inset_0_1px_1px_rgba(255,255,255,0.15)]'
+                      ${selectedVote === 'no'
+                        ? 'bg-white/10 border-white/30 text-white scale-95 shadow-[0_0_40px_rgba(255,255,255,0.15)]'
+                        : 'bg-white/[0.02] border border-white/[0.06] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] text-white/80 hover:text-white hover:bg-white/[0.08] hover:border-white/[0.15] hover:shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_20px_rgba(255,255,255,0.05),inset_0_1px_1px_rgba(255,255,255,0.15)]'
                       }
                       ${selectedVote === 'yes' ? 'opacity-20 grayscale scale-95' : 'opacity-100'}
                     `}
@@ -276,6 +261,55 @@ export default function App() {
             </motion.div>
           </AnimatePresence>
         </main>
+
+        {/* Liquid Glass Bottom Navigation */}
+        <div className="absolute bottom-0 left-0 right-0 z-40 pb-8 px-6 pointer-events-none">
+          <div className="pointer-events-auto flex justify-between items-center bg-white/[0.02] backdrop-blur-[40px] border border-white/[0.08] rounded-full p-2 shadow-[0_20px_40px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.1)] relative">
+            {BOTTOM_TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative z-10 flex items-center justify-center outline-none group tap-highlight-transparent transition-all duration-500 ease-out ${isActive ? 'px-5 py-3.5 w-auto' : 'flex-1 py-3.5'
+                    }`}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="nav-blob"
+                      className="absolute inset-0 bg-white/10 rounded-full border border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.15)] backdrop-blur-md"
+                      transition={{ type: 'spring', stiffness: 480, damping: 35 }}
+                    />
+                  )}
+                  <motion.div
+                    className="relative z-10 flex items-center justify-center overflow-hidden"
+                    animate={{
+                      color: isActive ? '#ffffff' : 'rgba(255,255,255,0.4)'
+                    }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                  >
+                    <Icon size={isActive ? 20 : 24} strokeWidth={isActive ? 2.5 : 2} className="relative z-10" />
+                    <AnimatePresence mode="popLayout">
+                      {isActive && (
+                        <motion.span
+                          initial={{ opacity: 0, width: 0, marginLeft: 0 }}
+                          animate={{ opacity: 1, width: 'auto', marginLeft: 8 }}
+                          exit={{ opacity: 0, width: 0, marginLeft: 0 }}
+                          transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                          className="text-[14px] font-bold tracking-wide whitespace-nowrap block"
+                        >
+                          {tab.label}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
