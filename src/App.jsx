@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Users, ArrowRight, Menu, User, Home, Plus, Crown, Sparkles, Flame, Share2, Shield, Zap, Rocket, Check, Settings, Edit2, MessageCircle, Bell, Award, MapPin, Activity, CheckCircle2, XCircle, Target, TrendingUp, BadgeCheck } from 'lucide-react';
+import { Clock, Users, ArrowRight, Menu, User, Home, Plus, Crown, Sparkles, Flame, Share2, Shield, Zap, Rocket, Check, Settings, Edit2, MessageCircle, Bell, Award, MapPin, Activity, CheckCircle2, XCircle, Target, TrendingUp, BadgeCheck, Heart } from 'lucide-react';
 
 const RISK_BADGES = {
   safe: { label: 'SAFE', icon: Shield, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', shadow: 'drop-shadow-[0_0_12px_rgba(74,222,128,0.5)]' },
@@ -74,7 +74,10 @@ const PREDICTIONS = [
     total: '54,291',
     resolvesIn: '6 years',
     potentialAura: '+1,500',
-    riskLevel: 'hot_take'
+    riskLevel: 'hot_take',
+    creator: 'Seth Freakin Rollins',
+    likes: 342,
+    comments: 89
   },
   {
     id: 2,
@@ -84,7 +87,10 @@ const PREDICTIONS = [
     total: '12,431',
     resolvesIn: '1 day',
     potentialAura: '+450',
-    riskLevel: 'bold'
+    riskLevel: 'bold',
+    creator: 'Ashpak',
+    likes: 124,
+    comments: 42
   },
   {
     id: 3,
@@ -94,7 +100,10 @@ const PREDICTIONS = [
     total: '8,920',
     resolvesIn: '142 days',
     potentialAura: '+820',
-    riskLevel: 'crazy'
+    riskLevel: 'crazy',
+    creator: 'Ekansh',
+    likes: 83,
+    comments: 17
   },
   {
     id: 4,
@@ -104,15 +113,19 @@ const PREDICTIONS = [
     total: '45,102',
     resolvesIn: '1,204 days',
     potentialAura: '+1,240',
-    riskLevel: 'safe'
+    riskLevel: 'safe',
+    creator: 'KVD',
+    likes: 1042,
+    comments: 384
   }
 ];
 
 const BOTTOM_TABS = [
   { id: 'home', label: 'Home', icon: Home, index: 0, color: '#8b5cf6', glowClass: 'bg-violet-500/30 border-violet-400/50 shadow-[0_0_30px_rgba(139,92,246,0.8)]' },
-  { id: 'create', label: 'Create', icon: Plus, index: 1, color: '#3b82f6', glowClass: 'bg-blue-500/30 border-blue-400/50 shadow-[0_0_30px_rgba(59,130,246,0.8)]' },
-  { id: 'leaderboard', label: 'Leaderboard', icon: Crown, index: 2, color: '#eab308', glowClass: 'bg-yellow-500/30 border-yellow-400/50 shadow-[0_0_30px_rgba(234,179,8,0.8)]' },
-  { id: 'profile', label: 'Profile', icon: User, index: 3, color: '#ec4899', glowClass: 'bg-pink-500/30 border-pink-400/50 shadow-[0_0_30px_rgba(236,72,153,0.8)]' }
+  { id: 'leaderboard', label: 'Leaderboard', icon: Crown, index: 1, color: '#eab308', glowClass: 'bg-yellow-500/30 border-yellow-400/50 shadow-[0_0_30px_rgba(234,179,8,0.8)]' },
+  { id: 'create', label: 'Create', icon: Plus, index: 2, color: '#3b82f6', glowClass: 'bg-blue-500/30 border-blue-400/50 shadow-[0_0_30px_rgba(59,130,246,0.8)]' },
+  { id: 'activity', label: 'Activity', icon: Activity, index: 3, color: '#10b981', glowClass: 'bg-emerald-500/30 border-emerald-400/50 shadow-[0_0_30px_rgba(16,185,129,0.8)]' },
+  { id: 'profile', label: 'Profile', icon: User, index: 4, color: '#ec4899', glowClass: 'bg-pink-500/30 border-pink-400/50 shadow-[0_0_30px_rgba(236,72,153,0.8)]' }
 ];
 
 export const VisionIcon = ({ size = 64, className = "" }) => (
@@ -171,7 +184,7 @@ const AmbientBackground = () => {
   );
 };
 
-const HomeDiscoveryScreen = ({ onPredictPress }) => {
+const HomeDiscoveryScreen = ({ userName, onPredictPress }) => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [carouselIndex, setCarouselIndex] = useState(0);
 
@@ -193,7 +206,7 @@ const HomeDiscoveryScreen = ({ onPredictPress }) => {
       <div className="flex flex-col relative z-10 pt-4 w-full">
         <div className="flex flex-col gap-6 px-5">
           <h1 className="text-[54px] leading-tight font-black text-white tracking-tight text-balance">
-            Hey there,<br />Srikant!
+            Hey there,<br />{userName}!
           </h1>
 
           {/* Auto-Rotating Carousel */}
@@ -675,11 +688,9 @@ const LeaderboardScreen = () => {
   );
 };
 
-const ProfileScreen = () => {
-  const [name, setName] = useState('Srikant');
+const ProfileScreen = ({ name, setName, hasChangedName, setHasChangedName }) => {
   const [city, setCity] = useState('Bengaluru');
   const [isEditingName, setIsEditingName] = useState(false);
-  const [hasChangedName, setHasChangedName] = useState(false);
 
   const handleNameSave = () => {
     if (name.trim()) {
@@ -700,34 +711,44 @@ const ProfileScreen = () => {
       <div className="px-6 flex flex-col gap-6 pt-12 relative z-10">
         <div className="flex flex-col gap-2">
           {/* Header Row: Name Context & Settings */}
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-3">
+          <div className="flex items-start justify-between w-full">
+            <div className="flex flex-col gap-1">
               {isEditingName ? (
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  onBlur={handleNameSave}
-                  autoFocus
-                  className="bg-transparent text-[40px] font-black text-white leading-none border-b-2 border-white/50 w-full outline-none"
-                />
-              ) : (
-                <div className="flex items-center gap-3">
-                  <h1 className="text-[40px] font-black leading-none tracking-tight text-white drop-shadow-md">
-                    {name}
-                  </h1>
-                  <BadgeCheck size={32} className="text-blue-400 drop-shadow-[0_0_12px_rgba(96,165,250,0.6)]" />
+                <div className="flex flex-col gap-2">
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    onBlur={handleNameSave}
+                    autoFocus
+                    className="bg-transparent text-[40px] font-black text-white leading-none border-b-2 border-white/50 w-full outline-none"
+                  />
+                  <span className="text-[10px] text-orange-400 font-bold uppercase tracking-wider bg-orange-500/10 px-2 py-1 rounded w-fit border border-orange-500/20 shadow-sm mt-1">
+                    Display name can only be changed once
+                  </span>
                 </div>
-              )}
-              {!hasChangedName && !isEditingName && (
-                <button onClick={() => setIsEditingName(true)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-white/70 hover:text-white">
-                  <Edit2 size={16} />
-                </button>
+              ) : (
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-[40px] font-black leading-none tracking-tight text-white drop-shadow-md">
+                      {name}
+                    </h1>
+                    <BadgeCheck size={32} className="text-blue-400 drop-shadow-[0_0_12px_rgba(96,165,250,0.6)]" />
+                  </div>
+                  <span className="text-white/50 font-medium tracking-wide mt-1">@srikanthamsa</span>
+                </div>
               )}
             </div>
 
-            <button className="p-3 bg-white/[0.05] border border-white/[0.05] backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
-              <Settings size={20} />
-            </button>
+            <div className="flex gap-2">
+              {!hasChangedName && !isEditingName && (
+                <button onClick={() => setIsEditingName(true)} className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-white/70 hover:text-white border border-white/10">
+                  <Edit2 size={18} />
+                </button>
+              )}
+              <button className="p-3 bg-white/[0.05] border border-white/[0.05] backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
+                <Settings size={18} />
+              </button>
+            </div>
           </div>
 
           {/* City (Auto-detected) */}
@@ -740,7 +761,7 @@ const ProfileScreen = () => {
         {/* Actions Row */}
         <div className="flex gap-3 mt-2">
           {[
-            { label: 'Comments', icon: MessageCircle },
+            { label: 'Following', icon: User },
             { label: 'Followers', icon: Users },
             { label: 'Badges', icon: Award }
           ].map((action, i) => (
@@ -864,6 +885,152 @@ const ProfileScreen = () => {
   );
 };
 
+const ActivityScreen = () => {
+  const activities = [
+    { id: 1, type: 'reply', user: 'Seth', details: 'replied to your comment on "Will AGI be announced before 2030?"', time: '2h', icon: MessageCircle, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+    { id: 2, type: 'like', user: 'Ashpak', details: 'liked your comment', time: '5h', icon: CheckCircle2, color: 'text-pink-400', bg: 'bg-pink-500/10' },
+    { id: 3, type: 'vote', user: 'KVD', details: 'voted YES on your prediction', time: '1d', icon: Crown, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+    { id: 4, type: 'follow', user: 'Ekansh', details: 'started following you', time: '2d', icon: User, color: 'text-emerald-400', bg: 'bg-emerald-500/10' }
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
+      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      className="relative z-20 w-full flex flex-col h-full pt-10 pb-48 overflow-y-auto no-scrollbar scroll-smooth px-6"
+    >
+      <div className="flex flex-col mb-8">
+        <h1 className="text-[40px] leading-[1.05] font-bold text-white/95 tracking-tight text-balance">
+          Activity
+        </h1>
+        <div className="text-white/40 text-[12px] font-bold tracking-[0.25em] uppercase mt-2 flex items-center gap-2">
+          <ActivityIcon size={14} className="text-emerald-400" />
+          Recent Interactions
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {activities.map((act) => (
+          <motion.div
+            key={act.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-start gap-4 bg-white/[0.03] border border-white/[0.05] rounded-[1.5rem] p-4 shadow-[inset_0_1px_10px_rgba(0,0,0,0.2)]"
+          >
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${act.bg}`}>
+              <act.icon size={18} className={act.color} />
+            </div>
+            <div className="flex flex-col flex-1 pl-1">
+              <span className="text-[14px] leading-tight text-white/80 font-medium tracking-wide">
+                <strong className="text-white font-black drop-shadow-sm">{act.user}</strong> {act.details}
+              </span>
+              <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold mt-2">
+                {act.time} ago
+              </span>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+};
+
+// Assuming Activity is imported as ActivityIcon natively earlier but aliased or standard Activity works
+const ActivityIcon = Activity;
+
+const CommentsModal = ({ isOpen, onClose, prediction }) => {
+  const [newComment, setNewComment] = useState('');
+  const [comments, setComments] = useState([
+    { id: 1, user: 'Ashpak', text: 'This is actually very possible given the current pace!', time: '2h' },
+    { id: 2, user: 'Ekansh', text: 'Nah, timeline is too short. There are hardware bottlenecks.', time: '5h' }
+  ]);
+
+  const handlePost = () => {
+    if (newComment.trim()) {
+      setComments([{ id: Date.now(), user: 'Srikant', text: newComment, time: 'Just now' }, ...comments]);
+      setNewComment('');
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 z-[100] bg-black/40 backdrop-blur-md"
+          />
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="absolute bottom-0 left-0 w-full h-[75vh] bg-black/60 backdrop-blur-3xl border-t border-white/[0.15] rounded-t-[2.5rem] z-[101] flex flex-col shadow-[0_-10px_40px_rgba(0,0,0,0.5)]"
+          >
+            <div className="w-full flex justify-center py-4">
+              <div className="w-12 h-1.5 bg-white/20 rounded-full" />
+            </div>
+
+            <div className="px-6 pb-4 border-b border-white/5 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-white">Comments ({comments.length})</h2>
+              <button onClick={onClose} className="p-2 bg-white/5 rounded-full text-white/50 hover:text-white transition-colors">
+                <XCircle size={20} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto no-scrollbar p-6 flex flex-col gap-6">
+              {comments.map((comment) => (
+                <div key={comment.id} className="flex gap-3">
+                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                    <User size={14} className="text-white/70" />
+                  </div>
+                  <div className="flex flex-col flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white text-[13px]">{comment.user}</span>
+                      <span className="text-white/40 text-[10px] uppercase font-bold tracking-wider">{comment.time}</span>
+                    </div>
+                    <p className="text-white/80 text-[14px] leading-relaxed mt-1">
+                      {comment.text}
+                    </p>
+                    <button className="text-[11px] font-bold text-white/40 hover:text-white mt-2 w-max transition-colors">
+                      Reply
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-4 border-t border-white/5 bg-white/[0.02] pb-8">
+              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-full p-1 pl-4">
+                <input
+                  type="text"
+                  placeholder="Add a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handlePost()}
+                  className="flex-1 bg-transparent text-[14px] text-white outline-none placeholder:text-white/40"
+                />
+                <button
+                  onClick={handlePost}
+                  disabled={!newComment.trim()}
+                  className="p-2 bg-indigo-500 rounded-full text-white disabled:opacity-50 disabled:bg-white/10 transition-colors"
+                >
+                  <ArrowRight size={18} />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
 export default function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPulsing, setIsPulsing] = useState(false);
@@ -871,7 +1038,23 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [isLogoGlowing, setIsLogoGlowing] = useState(false);
 
+  // Lifted Profile State
+  const [userName, setUserName] = useState('Srikant');
+  const [hasChangedName, setHasChangedName] = useState(false);
+
+  // Social State
+  const [likedPredictions, setLikedPredictions] = useState({});
+  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
+
   const currentPrediction = PREDICTIONS[currentIndex];
+  const isLiked = likedPredictions[currentPrediction.id];
+
+  const toggleLike = () => {
+    setLikedPredictions(prev => ({
+      ...prev,
+      [currentPrediction.id]: !prev[currentPrediction.id]
+    }));
+  };
 
   const handleLogoClick = () => {
     setIsLogoGlowing(true);
@@ -917,11 +1100,7 @@ export default function App() {
         <AmbientBackground />
 
         <header className="relative z-40 pt-10 px-6">
-          <div className="flex justify-between items-center">
-            <button className="p-3 text-white/70 hover:text-white transition-all outline-none rounded-full bg-white/[0.02] hover:bg-white/[0.08] border border-white/[0.05] backdrop-blur-xl group shadow-[0_4px_16px_rgba(0,0,0,0.2)]">
-              <Menu size={20} className="group-hover:scale-110 transition-transform duration-300" />
-            </button>
-
+          <div className="flex justify-center items-center">
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{
@@ -946,10 +1125,6 @@ export default function App() {
                 VISION
               </span>
             </motion.div>
-
-            <button className="p-3 text-white/70 hover:text-white transition-all outline-none rounded-full bg-white/[0.02] hover:bg-white/[0.08] border border-white/[0.05] backdrop-blur-xl group shadow-[0_4px_16px_rgba(0,0,0,0.2)]">
-              <Bell size={20} className="group-hover:scale-110 transition-transform duration-300" />
-            </button>
           </div>
         </header>
 
@@ -958,12 +1133,12 @@ export default function App() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: isPulsing ? 1 : 0, scale: isPulsing ? 1.4 : 0.8 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-indigo-500/20 blur-[100px] rounded-full pointer-events-none z-10"
+            className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] ${selectedVote === 'yes' ? 'bg-green-500/20' : selectedVote === 'no' ? 'bg-red-500/20' : 'bg-indigo-500/20'} blur-[100px] rounded-full pointer-events-none z-10`}
           />
 
           <AnimatePresence mode="wait">
             {activeTab === 'home' ? (
-              <HomeDiscoveryScreen key="home" onPredictPress={() => setActiveTab('predict')} />
+              <HomeDiscoveryScreen key="home" userName={userName} onPredictPress={() => setActiveTab('predict')} />
             ) : activeTab === 'predict' ? (
               <motion.div
                 key={currentPrediction.id}
@@ -985,15 +1160,28 @@ export default function App() {
                       const badge = RISK_BADGES[currentPrediction.riskLevel || 'safe'];
                       const BadgeIcon = badge.icon;
                       return (
-                        <motion.div
-                          key={currentPrediction.id + badge.label}
-                          initial={{ scale: 0.9, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          className={`flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] ${badge.color} ${badge.shadow} ${badge.bg} px-3 py-1.5 rounded-full border ${badge.border} h-fit`}
-                        >
-                          <BadgeIcon size={14} className={badge.color} />
-                          <span>{badge.label}</span>
-                        </motion.div>
+                        <div className="flex flex-col gap-3">
+                          <motion.div
+                            key={currentPrediction.id + badge.label}
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className={`flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] ${badge.color} ${badge.shadow} ${badge.bg} px-3 py-1.5 rounded-full border ${badge.border} h-fit w-fit`}
+                          >
+                            <BadgeIcon size={14} className={badge.color} />
+                            <span>{badge.label}</span>
+                          </motion.div>
+                          <div
+                            className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => setActiveTab('profile')}
+                          >
+                            <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                              <User size={10} className="text-white/70" />
+                            </div>
+                            <span className="text-[12px] font-bold text-white/70 tracking-wide mt-0.5">
+                              {currentPrediction.creator}
+                            </span>
+                          </div>
+                        </div>
                       );
                     })()}
 
@@ -1073,7 +1261,7 @@ export default function App() {
                           initial={{ scale: 0, opacity: 0.5 }}
                           animate={{ scale: 4, opacity: 0 }}
                           transition={{ duration: 0.9, ease: 'easeOut' }}
-                          className="absolute inset-0 bg-indigo-400/40 rounded-full pointer-events-none"
+                          className="absolute inset-0 bg-green-500/40 rounded-full pointer-events-none"
                         />
                       )}
                       <div
@@ -1108,7 +1296,7 @@ export default function App() {
                           initial={{ scale: 0, opacity: 0.4 }}
                           animate={{ scale: 4, opacity: 0 }}
                           transition={{ duration: 0.9, ease: 'easeOut' }}
-                          className="absolute inset-0 bg-white/20 rounded-full pointer-events-none"
+                          className="absolute inset-0 bg-red-500/40 rounded-full pointer-events-none"
                         />
                       )}
                       <div
@@ -1118,15 +1306,31 @@ export default function App() {
                     </motion.button>
                   </div>
 
-                  <div className="relative z-10 w-full flex justify-center mt-6">
+                  <div className="relative z-10 w-full flex justify-between items-center mt-6 px-1">
+                    <div className="flex gap-5 items-center">
+                      <button onClick={toggleLike} className="flex items-center gap-2 text-white/50 hover:text-white transition-colors group">
+                        <motion.div
+                          animate={isLiked ? { scale: [1, 1.4, 1] } : {}}
+                          transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                        >
+                          <Heart size={18} className={`transition-colors ${isLiked ? 'fill-red-500 text-red-500 hover:fill-red-400 hover:text-red-400' : 'group-hover:scale-110 group-active:scale-90'}`} />
+                        </motion.div>
+                        <span className={`text-[12px] font-bold transition-colors ${isLiked ? 'text-red-500' : ''}`}>{currentPrediction.likes + (isLiked ? 1 : 0)}</span>
+                      </button>
+                      <button onClick={() => setIsCommentsModalOpen(true)} className="flex items-center gap-2 text-white/50 hover:text-white transition-colors group">
+                        <MessageCircle size={18} className="group-hover:scale-110 transition-transform group-active:scale-90" />
+                        <span className="text-[12px] font-bold">{currentPrediction.comments}</span>
+                      </button>
+                    </div>
+
                     <motion.button
-                      whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.08)' }}
+                      whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={handleShare}
-                      className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/[0.03] border border-white/[0.1] shadow-[0_4px_20px_rgba(0,0,0,0.3)] text-[12px] font-bold tracking-widest text-white/70 hover:text-white transition-all uppercase drop-shadow-md"
+                      className="flex items-center gap-2 px-5 py-2 rounded-full bg-white/[0.03] border border-white/[0.1] shadow-[0_4px_20px_rgba(0,0,0,0.3)] text-[11px] font-bold tracking-widest text-white/70 hover:text-white transition-all uppercase drop-shadow-md"
                     >
                       <Share2 size={16} />
-                      Share Prediction
+                      Share
                     </motion.button>
                   </div>
                 </motion.div>
@@ -1135,8 +1339,16 @@ export default function App() {
               <CreatePredictionScreen key="create" onPublish={() => setActiveTab('home')} />
             ) : activeTab === 'leaderboard' ? (
               <LeaderboardScreen key="leaderboard" />
+            ) : activeTab === 'activity' ? (
+              <ActivityScreen key="activity" />
             ) : activeTab === 'profile' ? (
-              <ProfileScreen key="profile" />
+              <ProfileScreen
+                key="profile"
+                name={userName}
+                setName={setUserName}
+                hasChangedName={hasChangedName}
+                setHasChangedName={setHasChangedName}
+              />
             ) : null}
           </AnimatePresence>
         </main>
@@ -1189,7 +1401,12 @@ export default function App() {
             })}
           </div>
         </div>
-      </div >
-    </div >
+        <CommentsModal
+          isOpen={isCommentsModalOpen}
+          onClose={() => setIsCommentsModalOpen(false)}
+          prediction={currentPrediction}
+        />
+      </div>
+    </div>
   );
 }
