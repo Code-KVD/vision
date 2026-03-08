@@ -562,11 +562,11 @@ const LeaderboardScreen = () => {
 
   const leaderboardData = {
     Global: generateData([
-      { name: 'Seth', aura: '4,120', loc: 'Iowa' },
+      { name: 'Seth Freakin Rollins', aura: '4,120', loc: 'Iowa' },
       { name: 'Srikant', aura: '3,980', loc: 'Bengaluru' },
+      { name: 'Ashpak', aura: '3,980', loc: 'Bhilai' },
       { name: 'Ekansh', aura: '3,450', loc: 'Mumbai' },
       { name: 'KVD', aura: '3,210', loc: 'Bengaluru' },
-      { name: 'Ashpak', aura: '2,900', loc: 'Bhilai' },
       { name: 'Marcus', aura: '2,840', loc: 'Berlin' },
     ], false),
     Weekly: generateData([
