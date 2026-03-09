@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Users, ArrowRight, Menu, User, Home, Plus, Crown, Sparkles, Flame, Share2, Shield, Zap, Rocket, Check, Settings, Edit2, MessageCircle, Bell, Award, MapPin, Activity, CheckCircle2, XCircle, Target, TrendingUp, BadgeCheck, Heart } from 'lucide-react';
+import { Clock, Users, ArrowRight, ArrowLeft, Menu, User, Home, Plus, Crown, Sparkles, Flame, Share2, Shield, Zap, Rocket, Check, Settings, Edit2, MessageCircle, Bell, Award, MapPin, Activity, CheckCircle2, XCircle, Target, TrendingUp, BadgeCheck, Heart, ChevronRight, Loader2, Info } from 'lucide-react';
 
 const RISK_BADGES = {
   safe: { label: 'SAFE', icon: Shield, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', shadow: 'drop-shadow-[0_0_12px_rgba(74,222,128,0.5)]' },
@@ -76,6 +76,7 @@ const PREDICTIONS = [
     potentialAura: '+1,500',
     riskLevel: 'hot_take',
     creator: 'Seth Freakin Rollins',
+    creatorAura: 7650,
     likes: 342,
     comments: 89
   },
@@ -89,6 +90,7 @@ const PREDICTIONS = [
     potentialAura: '+450',
     riskLevel: 'bold',
     creator: 'Ashpak',
+    creatorAura: 1600,
     likes: 124,
     comments: 42
   },
@@ -102,6 +104,7 @@ const PREDICTIONS = [
     potentialAura: '+820',
     riskLevel: 'crazy',
     creator: 'Ekansh',
+    creatorAura: 2100,
     likes: 83,
     comments: 17
   },
@@ -115,6 +118,7 @@ const PREDICTIONS = [
     potentialAura: '+1,240',
     riskLevel: 'safe',
     creator: 'KVD',
+    creatorAura: 4500,
     likes: 1042,
     comments: 384
   }
@@ -726,7 +730,7 @@ const RatingLadderModal = ({ isOpen, onClose }) => {
             <div className="px-8 pb-6 border-b border-white/[0.04] flex justify-between items-center relative z-10">
               <div className="flex flex-col gap-1">
                 <h2 className="text-[24px] font-black text-white flex items-center gap-3 tracking-tight">
-                  <Crown size={24} className="text-yellow-400 drop-shadow-[0_0_12px_rgba(250,204,21,0.6)]" /> Forecast Ladder
+                  <Crown size={24} className="text-yellow-400 drop-shadow-[0_0_12px_rgba(250,204,21,0.6)]" /> Aura Ladder
                 </h2>
                 <span className="text-[12px] text-white/40 font-medium tracking-wide">Climb to the top by generating Aura</span>
               </div>
@@ -811,11 +815,11 @@ const RatingLadderModal = ({ isOpen, onClose }) => {
   );
 };
 
-const NetworkModal = ({ isOpen, onClose, type }) => {
+const NetworkModal = ({ isOpen, onClose, type, onUserClick }) => {
   const [networkUsers, setNetworkUsers] = useState([
-    { id: 1, name: 'Ashpak', isFollowing: true, username: '@ashpak99' },
-    { id: 2, name: 'Ekansh', isFollowing: false, username: '@ekanshxo' },
-    { id: 3, name: 'KVD', isFollowing: true, username: '@kvd_designs' }
+    { id: 1, name: 'Ashpak', isFollowing: true, username: '@sheikhashpak', aura: 1600 },
+    { id: 2, name: 'Ekansh', isFollowing: false, username: '@ekanshtiwari', aura: 2100 },
+    { id: 3, name: 'KVD', isFollowing: true, username: '@kvd_sridhar', aura: 4500 }
   ]);
 
   const handleToggleFollow = (id) => {
@@ -856,7 +860,7 @@ const NetworkModal = ({ isOpen, onClose, type }) => {
             <div className="flex-1 overflow-y-auto no-scrollbar p-6 flex flex-col gap-4">
               {networkUsers.map((user) => (
                 <div key={user.id} className="flex justify-between items-center bg-white/[0.03] border border-white/[0.05] p-3 rounded-[1.25rem] shadow-[inset_0_1px_10px_rgba(0,0,0,0.2)] hover:bg-white/[0.05] transition-colors">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 cursor-pointer" onClick={() => onUserClick?.(user)}>
                     <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
                       <User size={16} className="text-white/70" />
                     </div>
@@ -881,8 +885,275 @@ const NetworkModal = ({ isOpen, onClose, type }) => {
   );
 };
 
-const ProfileScreen = ({ name, setName, hasChangedName, setHasChangedName, onOpenNetwork, onOpenRating }) => {
-  const [city, setCity] = useState('Bengaluru');
+const BadgesModal = ({ isOpen, onClose }) => {
+  const BADGE_TYPES = [
+    { name: 'First Blood', desc: 'Made your first bold prediction', icon: Flame },
+    { name: 'The Oracle', desc: 'Nailed 10 correct predictions', icon: Crown },
+    { name: 'Sharpshooter', desc: 'Secure a 5 win streak', icon: Target },
+    { name: 'Risk Taker', desc: 'Bet on < 10% odds event', icon: Zap },
+    { name: 'To The Moon', desc: 'Accumulate 1,000 Aura', icon: Rocket },
+    { name: 'Guardian', desc: 'Voted safely 20 times', icon: Shield },
+    { name: 'Pioneer', desc: 'First to vote on a market', icon: Sparkles },
+    { name: 'Addict', desc: 'Active for 7 straight days', icon: Activity },
+    { name: 'Elite', desc: 'Reach top 10% on ladder', icon: Award },
+    { name: 'Verified', desc: 'Complete your profile setups', icon: BadgeCheck }
+  ];
+
+  const BADGES = Array.from({ length: 100 }).map((_, i) => {
+    const type = BADGE_TYPES[i % BADGE_TYPES.length];
+    const colors = ['text-amber-400', 'text-fuchsia-400', 'text-purple-400', 'text-indigo-400', 'text-blue-400', 'text-emerald-400', 'text-rose-400'];
+    const bgs = ['bg-amber-400/10', 'bg-fuchsia-400/10', 'bg-purple-400/10', 'bg-indigo-400/10', 'bg-blue-400/10', 'bg-emerald-400/10', 'bg-rose-400/10'];
+    const borders = ['border-amber-400/50', 'border-fuchsia-400/50', 'border-purple-400/50', 'border-indigo-400/50', 'border-blue-400/50', 'border-emerald-400/50', 'border-rose-400/50'];
+
+    const level = Math.floor(i / BADGE_TYPES.length) + 1;
+    const name = level > 1 ? `${type.name} ${level}` : type.name;
+
+    return {
+      id: i,
+      name: name,
+      desc: type.desc,
+      icon: type.icon,
+      color: colors[i % 7],
+      bg: bgs[i % 7],
+      border: borders[i % 7],
+      locked: i >= 12
+    };
+  });
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="absolute bottom-0 left-0 w-full h-[85vh] bg-[#050505] border-t border-white/[0.08] rounded-t-[2.5rem] z-[101] flex flex-col shadow-[0_-20px_60px_rgba(0,0,0,0.8)] overflow-hidden"
+          >
+            <div className="w-full flex justify-center py-4 relative z-10">
+              <div className="w-12 h-1.5 bg-white/10 rounded-full" />
+            </div>
+            <div className="px-8 pb-6 border-b border-white/[0.04] flex justify-between items-center relative z-10">
+              <div className="flex flex-col gap-1">
+                <h2 className="text-[24px] font-black text-white flex items-center gap-3 tracking-tight">
+                  <Award size={24} className="text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.6)]" /> Badges
+                </h2>
+                <span className="text-[12px] text-white/40 font-medium tracking-wide">Your earned achievements</span>
+              </div>
+              <button onClick={onClose} className="p-2.5 bg-white/[0.03] border border-white/[0.05] rounded-full text-white/50 hover:text-white hover:bg-white/[0.08] transition-all">
+                <XCircle size={22} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto no-scrollbar p-6 relative z-10">
+              <div className="grid grid-cols-3 gap-y-8 gap-x-4">
+                {BADGES.map((badge) => {
+                  const BIcon = badge.icon;
+                  return (
+                    <div key={badge.id} className="flex flex-col items-center group relative pt-3">
+                      <div className={`relative w-full aspect-square rounded-[2rem] flex flex-col items-center justify-center p-3 transition-all duration-500
+                        ${badge.locked ? 'bg-white/[0.02] border border-white/5 opacity-40 grayscale' : `bg-gradient-to-br from-white/[0.05] to-black border ${badge.border} shadow-[0_8px_32px_rgba(0,0,0,0.5)] group-hover:scale-[1.05] group-hover:shadow-[0_12px_40px_rgba(0,0,0,0.8)]`}`}>
+
+                        {/* Ribbon element */}
+                        <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-sm text-[9px] font-black tracking-widest uppercase shadow-xl z-20
+                          ${badge.locked ? 'bg-zinc-800 text-zinc-500' : `bg-gradient-to-r from-zinc-800 to-zinc-900 border border-white/10 ${badge.color}`}`}>
+                          <div className={`absolute -left-[3px] -bottom-[3px] w-[6px] h-[6px] rotate-45 -z-10 ${badge.locked ? 'bg-zinc-900' : 'bg-zinc-950'}`}></div>
+                          <div className={`absolute -right-[3px] -bottom-[3px] w-[6px] h-[6px] rotate-45 -z-10 ${badge.locked ? 'bg-zinc-900' : 'bg-zinc-950'}`}></div>
+                          Lvl {Math.floor(badge.id / 10) + 1}
+                        </div>
+
+                        {/* Inner glowing circle */}
+                        <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 relative shrink-0
+                          ${badge.locked ? 'bg-white/5' : badge.bg}`}>
+                          {!badge.locked && <div className={`absolute inset-0 rounded-full blur-lg ${badge.bg} -z-10 opacity-70`} />}
+                          <BIcon size={28} className={badge.locked ? 'text-white/20' : badge.color} />
+                        </div>
+
+                        <span className={`text-[11px] font-black text-center leading-none mb-1.5 px-1 tracking-wide
+                          ${badge.locked ? 'text-white/40' : 'text-white drop-shadow-md'}`}>
+                          {badge.name}
+                        </span>
+
+                        <span className="text-[9px] text-white/40 text-center font-medium leading-[1.2] line-clamp-2 px-1">
+                          {badge.desc}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+const SettingsModal = ({ isOpen, onClose }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="absolute bottom-0 left-0 w-full h-[85vh] bg-[#050505] border-t border-white/[0.08] rounded-t-[2.5rem] z-[101] flex flex-col shadow-[0_-20px_60px_rgba(0,0,0,0.8)] overflow-hidden"
+          >
+            <div className="w-full flex justify-center py-4 relative z-10">
+              <div className="w-12 h-1.5 bg-white/10 rounded-full" />
+            </div>
+            <div className="px-8 pb-6 border-b border-white/[0.04] flex justify-between items-center relative z-10">
+              <div className="flex flex-col gap-1">
+                <h2 className="text-[24px] font-black text-white flex items-center gap-3 tracking-tight">
+                  <Settings size={24} className="text-white drop-shadow-md" /> Settings
+                </h2>
+              </div>
+              <button onClick={onClose} className="p-2.5 bg-white/[0.03] border border-white/[0.05] rounded-full text-white/50 hover:text-white hover:bg-white/[0.08] transition-all">
+                <XCircle size={22} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto no-scrollbar p-6 relative z-10 flex flex-col gap-4">
+              {['Account', 'Notifications', 'Privacy', 'Help & Support', 'About VISION'].map((item) => (
+                <button key={item} className="w-full bg-white/[0.03] border border-white/[0.05] p-5 rounded-2xl flex justify-between items-center hover:bg-white/[0.06] transition-all text-left group">
+                  <span className="text-[16px] text-white font-bold tracking-wide">{item}</span>
+                  <ChevronRight size={18} className="text-white/40 group-hover:text-white/80 transition-colors" />
+                </button>
+              ))}
+              <button className="w-full bg-red-500/10 border border-red-500/20 p-5 rounded-2xl flex justify-between items-center hover:bg-red-500/20 transition-all text-left mt-4">
+                <span className="text-[16px] text-red-500 font-bold tracking-wide shadow-sm">Log Out</span>
+              </button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+const MetricsModal = ({ isOpen, onClose }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="absolute bottom-0 left-0 w-full h-[85vh] bg-[#050505] border-t border-white/[0.08] rounded-t-[2.5rem] z-[101] flex flex-col shadow-[0_-20px_60px_rgba(0,0,0,0.8)] overflow-hidden"
+          >
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150%] h-[300px] bg-sky-500/10 blur-[100px] pointer-events-none rounded-[100%]" />
+
+            <div className="w-full flex justify-center py-4 relative z-10">
+              <div className="w-12 h-1.5 bg-white/20 rounded-full" />
+            </div>
+
+            <div className="px-8 pb-6 border-b border-white/[0.04] flex justify-between items-center relative z-10">
+              <div className="flex flex-col gap-1">
+                <h2 className="text-[24px] font-black text-white flex items-center gap-3 tracking-tight">
+                  <Info size={24} className="text-sky-400 drop-shadow-[0_0_12px_rgba(56,189,248,0.6)]" /> Metrics Guide
+                </h2>
+                <span className="text-[12px] text-white/40 font-medium tracking-wide">Understanding your stats</span>
+              </div>
+              <button onClick={onClose} className="p-2.5 bg-white/[0.03] border border-white/[0.05] rounded-full text-white/50 hover:text-white hover:bg-white/[0.08] transition-all">
+                <XCircle size={22} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto no-scrollbar pb-20 relative z-10">
+              <div className="p-6 flex flex-col gap-8">
+
+                {/* Aura Points Section */}
+                <div className="bg-white/[0.02] border border-white/[0.04] rounded-3xl p-6 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-yellow-500/5 blur-xl group-hover:bg-yellow-500/10 transition-colors pointer-events-none" />
+                  <div className="flex items-center gap-3 mb-4 relative z-10">
+                    <Crown size={24} className="text-yellow-400" />
+                    <h3 className="text-[18px] font-bold text-white tracking-wide">Aura Points</h3>
+                  </div>
+                  <p className="text-white/60 text-[14px] leading-relaxed mb-6 relative z-10">
+                    Aura is your cumulative Experience Points (XP). It measures how active, influential, and social you are on Vision. <strong className="text-white/90">Aura only goes up.</strong> You can never lose Aura. It dictates your Prestige Rank.
+                  </p>
+                  <div className="flex flex-col gap-3 relative z-10">
+                    <div className="flex justify-between items-center text-[13px] border-b border-white/5 pb-2">
+                      <span className="text-white/40">Creating a Prediction</span>
+                      <span className="text-yellow-400 font-bold">+50</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[13px] border-b border-white/5 pb-2">
+                      <span className="text-white/40">Sharing a Prediction Link</span>
+                      <span className="text-yellow-400 font-bold">+25</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[13px] border-b border-white/5 pb-2">
+                      <span className="text-white/40">Voting on a Prediction</span>
+                      <span className="text-yellow-400 font-bold">+10</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[13px]">
+                      <span className="text-white/40">Receiving a Comment Like</span>
+                      <span className="text-yellow-400 font-bold">+2</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Forecast Rating Section */}
+                <div className="bg-white/[0.02] border border-white/[0.04] rounded-3xl p-6 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-violet-500/5 blur-xl group-hover:bg-violet-500/10 transition-colors pointer-events-none" />
+                  <div className="flex items-center gap-3 mb-4 relative z-10">
+                    <TrendingUp size={24} className="text-violet-400" />
+                    <h3 className="text-[18px] font-bold text-white tracking-wide">Forecast Rating</h3>
+                  </div>
+                  <p className="text-white/60 text-[14px] leading-relaxed mb-6 relative z-10">
+                    Forecast Rating is a competitive matchmaking score (ELO) that measures your sheer predictive skill. Unlike Aura, <strong className="text-white/90">Forecast Rating goes up AND down</strong>. It's fluid and high-stakes.
+                  </p>
+                  <div className="flex flex-col gap-3 relative z-10">
+                    <div className="flex justify-between items-start text-[13px] border-b border-white/5 pb-2">
+                      <span className="text-white/40 flex-1">Correct (Underdog / Bold)</span>
+                      <span className="text-green-400 font-bold ml-4">+40 to +65</span>
+                    </div>
+                    <div className="flex justify-between items-start text-[13px] border-b border-white/5 pb-2">
+                      <span className="text-white/40 flex-1">Correct (Safe)</span>
+                      <span className="text-green-400 font-bold ml-4">+5 to +15</span>
+                    </div>
+                    <div className="flex justify-between items-start text-[13px]">
+                      <span className="text-white/40 flex-1">Incorrect Prediction</span>
+                      <span className="text-red-400 font-bold ml-4">-20 to -40</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+const ProfileScreen = ({ name, setName, username, city, hasChangedName, setHasChangedName, onOpenNetwork, onOpenRating, onOpenBadges, onOpenSettings, onOpenMetrics, isReadOnly, onBack, aura }) => {
   const [isEditingName, setIsEditingName] = useState(false);
 
   const handleNameSave = () => {
@@ -891,6 +1162,66 @@ const ProfileScreen = ({ name, setName, hasChangedName, setHasChangedName, onOpe
       setHasChangedName(true);
     }
   };
+
+  const getStats = (profileName, currentAura) => {
+    const hash = profileName ? profileName.length : 6;
+
+    // Use actual passed aura, or simulate based on hash fallback
+    const rawScore = currentAura || (hash > 6 ? 1840 : 1420);
+
+    const RANKS = [
+      { name: 'Visionary', min: 5000 },
+      { name: 'Oracle', min: 2500 },
+      { name: 'Sage', min: 1550 },
+      { name: 'Strategist', min: 1000 },
+      { name: 'Seeker', min: 500 },
+      { name: 'Novice', min: 0 }
+    ];
+
+    let currentRankIdx = RANKS.findIndex(r => rawScore >= r.min);
+    if (currentRankIdx === -1) currentRankIdx = RANKS.length - 1;
+
+    const currentRank = RANKS[currentRankIdx];
+    const nextRankInfo = currentRankIdx > 0 ? RANKS[currentRankIdx - 1] : null;
+
+    const maxScore = nextRankInfo ? nextRankInfo.min : 6000;
+    const pointsToNext = nextRankInfo ? nextRankInfo.min - rawScore : 0;
+    const isMaxed = !nextRankInfo;
+
+    const levelProgressRaw = nextRankInfo ? ((rawScore - currentRank.min) / (nextRankInfo.min - currentRank.min) * 100) : 100;
+    const levelProgress = `${Math.min(100, Math.max(0, levelProgressRaw))}%`;
+
+    const isVisionaryCard = rawScore >= 5000;
+
+    return {
+      isVisionary: isVisionaryCard,
+      title: currentRank.name,
+      score: rawScore.toLocaleString(),
+      maxScore: maxScore.toLocaleString(),
+      created: isVisionaryCard ? '156' : hash * 2 + 10,
+      made: isVisionaryCard ? '842' : hash * 8 + 40,
+      correct: isVisionaryCard ? '642' : hash * 5 + 20,
+      incorrect: isVisionaryCard ? '200' : hash * 3 + 20,
+      accuracy: isVisionaryCard ? '76.2%' : (hash > 6 ? '72.5%' : '67.2%'),
+      forecastRating: isVisionaryCard ? '3,842' : (hash * 150 + 1100).toLocaleString(),
+      percentile: isVisionaryCard ? 'Top 1% of Predictors' : `Top ${hash * 2 + 5}% of Predictors`,
+      levelProgress: levelProgress,
+      pointsToNext: pointsToNext,
+      nextRank: nextRankInfo ? nextRankInfo.name : 'Max Rank',
+      isMaxed: isMaxed,
+      ratingColor: isVisionaryCard ? 'text-amber-300' : 'text-indigo-200',
+      ratingText: isVisionaryCard ? 'text-amber-100' : 'text-indigo-100',
+      ratingBg: isVisionaryCard ? 'bg-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'bg-indigo-500/20',
+      ratingBorder: isVisionaryCard ? 'border-amber-400/30' : 'border-indigo-400/20',
+      cardGradient: isVisionaryCard ? 'bg-gradient-to-br from-amber-500/20 via-orange-600/10 to-yellow-500/10' : 'bg-gradient-to-br from-indigo-500/20 via-indigo-600/10 to-purple-500/10',
+      cardBorder: isVisionaryCard ? 'border-amber-400/30' : 'border-indigo-400/30',
+      cardShadow: isVisionaryCard ? 'shadow-[0_8px_32px_rgba(245,158,11,0.2)]' : 'shadow-[0_8px_32px_rgba(79,70,229,0.2)]',
+      cardGlow: isVisionaryCard ? 'bg-amber-500/10 group-hover:bg-amber-500/20' : 'bg-indigo-500/10 group-hover:bg-indigo-500/30',
+      progressGradient: isVisionaryCard ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-400 shadow-[0_0_12px_rgba(251,191,36,0.6)]' : 'bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-400 shadow-[0_0_12px_rgba(168,85,247,0.6)]'
+    };
+  };
+
+  const stats = getStats(name, aura);
 
   return (
     <motion.div
@@ -901,7 +1232,16 @@ const ProfileScreen = ({ name, setName, hasChangedName, setHasChangedName, onOpe
       className="relative z-20 w-full flex flex-col h-full overflow-y-auto no-scrollbar scroll-smooth pb-32"
     >
       {/* Profile Details */}
-      <div className="px-6 flex flex-col gap-6 pt-12 relative z-10">
+      <div className="px-6 flex flex-col gap-5 pt-8 relative z-10">
+        <div className="flex w-full justify-between items-center mb-1">
+          {onBack && (
+            <button onClick={onBack} className="flex items-center gap-2 text-white/50 hover:text-white transition-colors group border border-white/10 rounded-full px-4 py-2 hover:bg-white/5 bg-black/40 outline-none tap-highlight-transparent">
+              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+              <span className="text-[10px] font-bold uppercase tracking-widest">Back</span>
+            </button>
+          )}
+        </div>
+
         <div className="flex flex-col gap-2">
           {/* Header Row: Name Context & Settings */}
           <div className="flex items-start justify-between w-full">
@@ -927,27 +1267,29 @@ const ProfileScreen = ({ name, setName, hasChangedName, setHasChangedName, onOpe
                     </h1>
                     <BadgeCheck size={32} className="text-blue-400 drop-shadow-[0_0_12px_rgba(96,165,250,0.6)]" />
                   </div>
-                  <span className="text-white/50 font-medium tracking-wide mt-1">@srikanthamsa</span>
+                  <span className="text-white/50 font-medium tracking-wide mt-1">{username || '@username'}</span>
                 </div>
               )}
             </div>
 
             <div className="flex gap-2">
-              {!hasChangedName && !isEditingName && (
+              {!hasChangedName && !isEditingName && !isReadOnly && (
                 <button onClick={() => setIsEditingName(true)} className="p-3 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-white/70 hover:text-white border border-white/10">
                   <Edit2 size={18} />
                 </button>
               )}
-              <button className="p-3 bg-white/[0.05] border border-white/[0.05] backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
-                <Settings size={18} />
-              </button>
+              {!isReadOnly && (
+                <button onClick={onOpenSettings} className="p-3 bg-white/[0.05] border border-white/[0.05] backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-colors shadow-[0_4px_16px_rgba(0,0,0,0.3)]">
+                  <Settings size={18} />
+                </button>
+              )}
             </div>
           </div>
 
           {/* City (Auto-detected) */}
           <div className="flex items-center gap-2 text-white/50 -mt-2">
             <MapPin size={16} />
-            <span className="text-[16px] tracking-wide font-medium">{city}</span>
+            <span className="text-[16px] tracking-wide font-medium">{city || 'Location Unknown'}</span>
           </div>
         </div>
 
@@ -960,7 +1302,7 @@ const ProfileScreen = ({ name, setName, hasChangedName, setHasChangedName, onOpe
           ].map((action, i) => (
             <button
               key={i}
-              onClick={() => onOpenNetwork(action.label)}
+              onClick={() => action.label === 'Badges' ? onOpenBadges() : onOpenNetwork(action.label)}
               className="flex-1 py-3.5 bg-white/[0.03] border border-white/[0.05] rounded-2xl flex flex-col items-center gap-2 hover:bg-white/[0.06] transition-all shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] outline-none"
             >
               <action.icon size={20} className="text-white/60" />
@@ -971,51 +1313,89 @@ const ProfileScreen = ({ name, setName, hasChangedName, setHasChangedName, onOpe
 
         {/* Stats Grid */}
         <div className="flex flex-col gap-4 mt-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Activity size={18} className="text-white/40" />
-            <h2 className="text-[14px] font-bold tracking-[0.2em] uppercase text-white/40">Performance</h2>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Activity size={18} className="text-white/40" />
+              <h2 className="text-[14px] font-bold tracking-[0.2em] uppercase text-white/40">Performance</h2>
+            </div>
+            <button
+              onClick={(e) => { e.stopPropagation(); onOpenMetrics?.(); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/10 hover:bg-white/[0.08] transition-colors text-white/50 hover:text-white"
+            >
+              <Info size={12} />
+              <span className="text-[10px] font-bold uppercase tracking-wider">Metrics Guide</span>
+            </button>
           </div>
 
-          {/* Forecast Rating Lead Card */}
+          {/* Aura Level Lead Card */}
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onOpenRating}
-            className="w-full text-left bg-gradient-to-br from-indigo-500/20 via-indigo-600/10 to-purple-500/10 border border-indigo-400/30 rounded-[2rem] p-6 relative overflow-hidden group shadow-[0_8px_32px_rgba(79,70,229,0.2)] outline-none"
+            className={`w-full text-left ${stats.cardGradient} border ${stats.cardBorder} rounded-[2rem] p-6 relative overflow-hidden group ${stats.cardShadow} outline-none ${stats.isVisionary ? 'ring-1 ring-amber-500/50 shadow-[0_0_40px_rgba(245,158,11,0.3)]' : ''}`}
           >
-            <div className="absolute inset-0 bg-indigo-500/10 blur-2xl group-hover:bg-indigo-500/30 transition-all duration-500 pointer-events-none" />
+            {stats.isVisionary && (
+              <>
+                {/* Active ambient pulsing aura */}
+                <motion.div
+                  animate={{ opacity: [0.4, 0.8, 0.4], scale: [0.95, 1.05, 0.95] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute inset-0 bg-amber-500/30 blur-2xl pointer-events-none"
+                />
+
+                {/* Diagonal light sweep (shimmer) */}
+                <motion.div
+                  animate={{ x: ['-200%', '200%'] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', repeatDelay: 1 }}
+                  className="absolute inset-0 w-[150%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-[-30deg] z-0 pointer-events-none blur-[2px]"
+                />
+              </>
+            )}
+
+            <div className={`absolute inset-0 ${stats.cardGlow} blur-2xl transition-colors duration-500 pointer-events-none`} />
             <div className="relative z-10 flex flex-col">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <TrendingUp size={18} className="text-indigo-300 drop-shadow-[0_0_8px_rgba(165,180,252,0.6)]" />
-                  <span className="text-[12px] font-bold tracking-[0.2em] uppercase text-indigo-300 drop-shadow-md">Forecast Rating</span>
+                  <TrendingUp size={18} className={`${stats.ratingColor} drop-shadow-md`} />
+                  <span className={`text-[12px] font-bold tracking-[0.2em] uppercase ${stats.ratingColor} drop-shadow-md`}>Aura Points</span>
                 </div>
-                <span className="text-[10px] font-bold tracking-wider text-indigo-200 bg-indigo-500/20 px-2.5 py-1 rounded-full border border-indigo-400/20">
-                  Top 8% of Predictors
+                <span className={`text-[10px] font-bold tracking-wider ${stats.ratingColor} ${stats.ratingBg} px-2.5 py-1 rounded-full border ${stats.ratingBorder}`}>
+                  {stats.percentile}
                 </span>
               </div>
 
               <div className="flex flex-col gap-1 mt-2">
-                <span className="text-[15px] font-bold text-indigo-100 drop-shadow-sm px-1">
-                  Strategist
+                <span className={`text-[15px] font-bold ${stats.ratingText} drop-shadow-sm px-1`}>
+                  {stats.title}
                 </span>
                 <div className="flex items-baseline gap-2 px-1 mb-1">
-                  <span className="text-[42px] font-black text-white leading-none tracking-tighter drop-shadow-xl">1,420</span>
-                  <span className="text-[16px] font-bold text-white/30">/ 1550</span>
+                  <span className="text-[42px] font-black text-white leading-none tracking-tighter drop-shadow-xl">{stats.score}</span>
+                  <span className="text-[16px] font-bold text-white/30">/ {stats.maxScore}</span>
                 </div>
 
                 {/* Level Up Progress Bar */}
-                <div className="h-3 w-full bg-black/60 rounded-full overflow-hidden border border-white/10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] my-2">
+                <div className="h-3 w-full bg-black/60 rounded-full overflow-hidden border border-white/10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] my-2 relative">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: '13%' }}
+                    animate={{ width: stats.levelProgress }}
                     transition={{ duration: 1.2, ease: 'easeOut', delay: 0.1 }}
-                    className="h-full bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-400 rounded-full shadow-[0_0_12px_rgba(168,85,247,0.6)]"
+                    className={`h-full ${stats.progressGradient} rounded-full`}
                   />
+                  {stats.isMaxed && (
+                    <motion.div
+                      animate={{ x: ['-200%', '200%'] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      className="absolute top-0 left-0 w-[50%] h-full bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[-30deg]"
+                    />
+                  )}
                 </div>
 
                 <span className="text-[12px] font-medium text-white/50 tracking-wide text-right px-1">
-                  130 points to <span className="text-purple-300 font-bold">Sage</span>
+                  {stats.isMaxed ? (
+                    <span className={`${stats.ratingColor} font-bold tracking-widest uppercase text-[10px]`}>Maximum Rank Achieved</span>
+                  ) : (
+                    <>{stats.pointsToNext.toLocaleString()} points to <span className={`${stats.ratingColor} font-bold`}>{stats.nextRank}</span></>
+                  )}
                 </span>
               </div>
             </div>
@@ -1024,23 +1404,23 @@ const ProfileScreen = ({ name, setName, hasChangedName, setHasChangedName, onOpe
           <div className="flex gap-4">
             <div className="flex-1 bg-white/[0.02] border border-white/[0.04] rounded-3xl p-5 flex flex-col border-t-white/[0.08]">
               <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-white/40 mb-1">Predictions Created</span>
-              <span className="text-[28px] font-black text-white">42</span>
+              <span className="text-[28px] font-black text-white">{stats.created}</span>
             </div>
             <div className="flex-1 bg-white/[0.02] border border-white/[0.04] rounded-3xl p-5 flex flex-col border-t-white/[0.08]">
               <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-white/40 mb-1">Predictions Made</span>
-              <span className="text-[28px] font-black text-white">128</span>
+              <span className="text-[28px] font-black text-white">{stats.made}</span>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white/[0.02] border border-white/[0.04] rounded-3xl p-5 flex flex-col items-center justify-center text-center">
               <CheckCircle2 size={24} className="text-green-400 mb-3" />
-              <span className="text-[24px] font-black text-white leading-none mb-1">86</span>
+              <span className="text-[24px] font-black text-white leading-none mb-1">{stats.correct}</span>
               <span className="text-[10px] font-bold tracking-[0.15em] uppercase text-white/40">Correct</span>
             </div>
             <div className="bg-white/[0.02] border border-white/[0.04] rounded-3xl p-5 flex flex-col items-center justify-center text-center">
               <XCircle size={24} className="text-red-400 mb-3" />
-              <span className="text-[24px] font-black text-white leading-none mb-1">42</span>
+              <span className="text-[24px] font-black text-white leading-none mb-1">{stats.incorrect}</span>
               <span className="text-[10px] font-bold tracking-[0.15em] uppercase text-white/40">Incorrect</span>
             </div>
           </div>
@@ -1051,18 +1431,18 @@ const ProfileScreen = ({ name, setName, hasChangedName, setHasChangedName, onOpe
               <div className="absolute inset-0 bg-indigo-500/10 blur-xl group-hover:bg-indigo-500/20 transition-colors pointer-events-none" />
               <Target size={24} className="text-indigo-400/40 relative z-10 mb-3" />
               <div className="relative z-10 flex flex-col gap-1">
-                <span className="text-[28px] font-black text-white leading-none tracking-tight">67.2%</span>
+                <span className="text-[28px] font-black text-white leading-none tracking-tight">{stats.accuracy}</span>
                 <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-indigo-300">Accuracy</span>
               </div>
             </div>
 
-            {/* Aura Points */}
+            {/* Forecast Rating */}
             <div className="bg-gradient-to-br from-violet-500/10 to-fuchsia-500/5 border border-violet-500/20 rounded-3xl p-5 flex flex-col justify-center relative overflow-hidden group shadow-[0_4px_20px_rgba(139,92,246,0.1)]">
               <div className="absolute inset-0 bg-violet-500/10 blur-xl group-hover:bg-violet-500/20 transition-colors pointer-events-none" />
-              <Sparkles size={24} className="text-violet-400/40 relative z-10 mb-3" />
+              <TrendingUp size={24} className="text-violet-400/40 relative z-10 mb-3" />
               <div className="relative z-10 flex flex-col gap-1">
-                <span className="text-[28px] font-black text-white leading-none tracking-tight">1,240</span>
-                <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-violet-300">Aura</span>
+                <span className="text-[28px] font-black text-white leading-none tracking-tight">{stats.forecastRating}</span>
+                <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-violet-300">Forecast Rating</span>
               </div>
             </div>
           </div>
@@ -1142,7 +1522,7 @@ const ActivityScreen = () => {
 // Assuming Activity is imported as ActivityIcon natively earlier but aliased or standard Activity works
 const ActivityIcon = Activity;
 
-const CommentItem = ({ comment, allComments, onReply, onLike, likedComments, depth = 0 }) => {
+const CommentItem = ({ comment, allComments, onReply, onLike, likedComments, onUserClick, depth = 0 }) => {
   const children = allComments.filter(c => c.parentId === comment.id);
 
   return (
@@ -1155,7 +1535,12 @@ const CommentItem = ({ comment, allComments, onReply, onLike, likedComments, dep
           <div className="flex justify-between items-start">
             <div className="flex flex-col flex-1 pr-4">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-white text-[13px]">{comment.user}</span>
+                <span
+                  className="font-bold text-white text-[13px] hover:underline cursor-pointer"
+                  onClick={() => onUserClick?.({ name: comment.user, username: `@${comment.user.toLowerCase().replace(/\s+/g, '')}`, aura: comment.aura })}
+                >
+                  {comment.user}
+                </span>
                 <span className="text-white/40 text-[10px] uppercase font-bold tracking-wider">{comment.time}</span>
               </div>
               <p className="text-white/80 text-[14px] leading-relaxed mt-1 whitespace-pre-wrap break-words">
@@ -1200,6 +1585,7 @@ const CommentItem = ({ comment, allComments, onReply, onLike, likedComments, dep
           onReply={onReply}
           onLike={onLike}
           likedComments={likedComments}
+          onUserClick={onUserClick}
           depth={depth + 1}
         />
       ))}
@@ -1207,13 +1593,13 @@ const CommentItem = ({ comment, allComments, onReply, onLike, likedComments, dep
   );
 };
 
-const CommentsModal = ({ isOpen, onClose, prediction }) => {
+const CommentsModal = ({ isOpen, onClose, prediction, onUserClick }) => {
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState(null);
   const [comments, setComments] = useState([
-    { id: 1, parentId: null, user: 'Ashpak', text: 'This is actually very possible given the current pace!', time: '2h', likes: 142 },
-    { id: 2, parentId: null, user: 'Ekansh', text: 'Nah, timeline is too short. There are hardware bottlenecks.', time: '5h', likes: 38 },
-    { id: 3, parentId: 1, user: 'KVD', text: 'Totally agree, the architectural shifts are compounding quickly.', time: '1h', likes: 24 }
+    { id: 1, parentId: null, user: 'Ashpak', text: 'This is actually very possible given the current pace!', time: '2h', likes: 142, aura: 1600 },
+    { id: 2, parentId: null, user: 'Ekansh', text: 'Nah, timeline is too short. There are hardware bottlenecks.', time: '5h', likes: 38, aura: 2100 },
+    { id: 3, parentId: 1, user: 'KVD', text: 'Totally agree, the architectural shifts are compounding quickly.', time: '1h', likes: 24, aura: 4500 }
   ]);
   const [likedComments, setLikedComments] = useState({});
   const inputRef = React.useRef(null);
@@ -1226,7 +1612,8 @@ const CommentsModal = ({ isOpen, onClose, prediction }) => {
         user: 'Srikant',
         text: newComment,
         time: 'Just now',
-        likes: 0
+        likes: 0,
+        aura: 5420
       }, ...comments]);
       setNewComment('');
       setReplyingTo(null);
@@ -1285,6 +1672,7 @@ const CommentsModal = ({ isOpen, onClose, prediction }) => {
                   onReply={handleReply}
                   onLike={toggleLike}
                   likedComments={likedComments}
+                  onUserClick={onUserClick}
                 />
               ))}
             </div>
@@ -1326,15 +1714,417 @@ const CommentsModal = ({ isOpen, onClose, prediction }) => {
   );
 };
 
+
+
+const OnboardingScreen = ({ onComplete }) => {
+  const [step, setStep] = useState('email');
+  const [email, setEmail] = useState('');
+  const [countryCode, setCountryCode] = useState('+91');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [timeLeft, setTimeLeft] = useState(59);
+
+  // Profile State
+  const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
+  const [city, setCity] = useState('');
+  const [age, setAge] = useState('');
+
+  useEffect(() => {
+    let timer;
+    if (step === 'otp' && timeLeft > 0) {
+      timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [step, timeLeft]);
+
+  useEffect(() => {
+    if (step === 'loading') {
+      const t = setTimeout(() => {
+        setStep('profile');
+      }, 1500);
+      return () => clearTimeout(t);
+    }
+  }, [step]);
+
+  useEffect(() => {
+    if (step === 'saving') {
+      const t = setTimeout(() => {
+        setStep('success');
+      }, 1500);
+      return () => clearTimeout(t);
+    }
+  }, [step]);
+
+  useEffect(() => {
+    if (step === 'success') {
+      const t = setTimeout(() => {
+        onComplete({ displayName, username, city, age });
+      }, 1500);
+      return () => clearTimeout(t);
+    }
+  }, [step, onComplete, displayName, username, city, age]);
+
+  const handleOtpChange = (index, value) => {
+    if (!/^[0-9]*$/.test(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+    if (newOtp.every(v => v !== '') && index === 5) {
+      setTimeout(() => setStep('loading'), 100);
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').slice(0, 6).replace(/[^0-9]/g, '');
+    if (pastedData) {
+      const newOtp = [...otp];
+      for (let i = 0; i < pastedData.length; i++) {
+        newOtp[i] = pastedData[i];
+      }
+      setOtp(newOtp);
+      if (pastedData.length === 6) {
+        setTimeout(() => setStep('loading'), 100);
+        const lastInput = document.getElementById(`otp-5`);
+        if (lastInput) lastInput.focus();
+      } else {
+        const nextInput = document.getElementById(`otp-${pastedData.length}`);
+        if (nextInput) nextInput.focus();
+      }
+    }
+  };
+
+  const isSuccess = step === 'success';
+  const isPhoneMode = email.length > 0 && /^[0-9\s-]*$/.test(email);
+  const isValidContact = (email.includes('@') && email.includes('.')) || (isPhoneMode && email.replace(/[^0-9]/g, '').length >= 7);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className={`absolute inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden w-full max-w-[480px] mx-auto bg-[#020202]`}
+    >
+      <AmbientBackground />
+
+      <motion.div
+        layout
+        transition={{ type: 'spring', damping: 30, stiffness: 200 }}
+        className={`w-full flex flex-col z-10 transition-all duration-700 items-center justify-center h-full`}
+      >
+        {!isSuccess && (
+          <motion.div layout className="w-full relative py-12 px-6 flex flex-col items-center justify-center bg-white/[0.02] backdrop-blur-[8px]">
+            {/* Top Separator with Subtle Fire Aura */}
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent">
+              {/* Core glow */}
+              <motion.div
+                animate={{ opacity: [0.4, 0.8, 0.4] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-[2px] bg-gradient-to-r from-transparent via-violet-400 to-transparent shadow-[0_0_15px_rgba(139,92,246,0.6)] mix-blend-screen pointer-events-none"
+              />
+              {/* Soft pulsating flame aura */}
+              <motion.div
+                animate={{
+                  opacity: [0.1, 0.4, 0.1],
+                  scaleY: [0.8, 1.2, 0.8],
+                  filter: ['blur(15px)', 'blur(25px)', 'blur(15px)']
+                }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-[30px] bg-gradient-to-r from-transparent via-fuchsia-500 to-transparent mix-blend-screen pointer-events-none"
+              />
+            </div>
+
+            {/* Bottom Separator with Subtle Fire Aura */}
+            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent">
+              {/* Core glow */}
+              <motion.div
+                animate={{ opacity: [0.4, 0.8, 0.4] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-[2px] bg-gradient-to-r from-transparent via-violet-400 to-transparent shadow-[0_0_15px_rgba(139,92,246,0.6)] mix-blend-screen pointer-events-none"
+              />
+              {/* Soft pulsating flame aura */}
+              <motion.div
+                animate={{
+                  opacity: [0.1, 0.4, 0.1],
+                  scaleY: [0.8, 1.2, 0.8],
+                  filter: ['blur(15px)', 'blur(25px)', 'blur(15px)']
+                }}
+                transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 h-[30px] bg-gradient-to-r from-transparent via-fuchsia-500 to-transparent mix-blend-screen pointer-events-none"
+              />
+            </div>
+
+            <div className="flex items-center gap-6 mb-12 mt-4 group relative z-10">
+              <VisionIcon size={52} className="text-white/90 group-hover:text-white transition-colors" />
+              <div className="w-px h-10 bg-white/10" />
+              <span className="text-[40px] font-medium tracking-[0.35em] text-white/90 group-hover:text-white transition-colors">
+                VISION
+              </span>
+            </div>
+
+            <AnimatePresence mode="popLayout">
+              {(step === 'email' || step === 'otp' || step === 'loading') && (
+                <motion.div key="accordion" layout initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex flex-col gap-5 w-full max-w-[400px]">
+
+                  {/* Step 2: Email */}
+                  <motion.div layout className={`flex flex-col bg-black/40 border border-white/[0.08] rounded-[1.5rem] p-6 overflow-hidden transition-all duration-500 ${step === 'email' ? 'shadow-[0_0_30px_rgba(99,102,241,0.15)] ring-1 ring-indigo-500/30' : 'opacity-40'}`}>
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all duration-500 ${step === 'email' ? 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.6)]' : 'bg-white/10 text-white'}`}>
+                        {step === 'email' ? <User size={20} /> : <Check size={18} />}
+                      </div>
+                      <h2 className={`font-bold text-white tracking-wide transition-all duration-500 ${step === 'email' ? 'text-[20px]' : 'text-[16px]'}`}>Setup Account</h2>
+                    </div>
+                    <AnimatePresence>
+                      {step === 'email' && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex flex-col gap-5 mt-6">
+                          <p className="text-white/40 text-[14px] font-medium leading-relaxed">Enter your email or phone to receive a secure code.</p>
+                          <div className="flex gap-3 w-full relative">
+                            <AnimatePresence>
+                              {isPhoneMode && (
+                                <motion.select
+                                  initial={{ width: 0, opacity: 0 }}
+                                  animate={{ width: 90, opacity: 1 }}
+                                  exit={{ width: 0, opacity: 0 }}
+                                  value={countryCode}
+                                  onChange={(e) => setCountryCode(e.target.value)}
+                                  className="bg-black/50 border border-white/10 rounded-[1rem] px-3 py-4 text-[16px] font-bold tracking-wide text-white outline-none focus:border-indigo-400 focus:bg-indigo-500/5 transition-all text-center appearance-none cursor-pointer hover:bg-white/5"
+                                >
+                                  <option value="+91">IN (+91)</option>
+                                  <option value="+1">US (+1)</option>
+                                  <option value="+44">UK (+44)</option>
+                                  <option value="+61">AU (+61)</option>
+                                  <option value="+49">DE (+49)</option>
+                                  <option value="+33">FR (+33)</option>
+                                  <option value="+81">JP (+81)</option>
+                                  <option value="+86">CN (+86)</option>
+                                  <option value="+55">BR (+55)</option>
+                                  <option value="+971">AE (+971)</option>
+                                  <option value="+65">SG (+65)</option>
+                                  <option value="+27">ZA (+27)</option>
+                                  <option value="+7">RU (+7)</option>
+                                  <option value="+82">KR (+82)</option>
+                                  <option value="+39">IT (+39)</option>
+                                </motion.select>
+                              )}
+                            </AnimatePresence>
+                            <input
+                              type="text"
+                              placeholder="Email or Phone number"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              className="w-full flex-1 bg-black/50 border border-white/10 rounded-[1rem] px-5 py-4 text-[16px] font-medium tracking-wide text-white outline-none focus:border-indigo-400 focus:bg-indigo-500/5 transition-all placeholder:text-white/20"
+                              autoFocus
+                            />
+                          </div>
+                          <button onClick={() => setStep('otp')} disabled={!isValidContact} className="w-full bg-indigo-500 text-white font-bold py-4 rounded-[1rem] text-[16px] shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:scale-[1.02] hover:bg-indigo-400 transition-all active:scale-95 disabled:opacity-30 disabled:hover:scale-100 disabled:shadow-none mt-2 outline-none">
+                            Continue
+                          </button>
+
+                          <div className="flex items-center gap-4 my-2">
+                            <div className="flex-1 h-px bg-white/10" />
+                            <span className="text-white/30 text-[12px] font-bold uppercase tracking-wider">Or</span>
+                            <div className="flex-1 h-px bg-white/10" />
+                          </div>
+
+                          <div className="flex gap-4">
+                            <button className="flex-1 bg-white/5 border border-white/10 text-white font-bold py-3.5 rounded-[1rem] text-[14px] hover:bg-white/10 transition-all active:scale-95 flex justify-center items-center gap-2">
+                              {/* Simple Google G SVG */}
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                              </svg>
+                              Google
+                            </button>
+                            <button className="flex-1 bg-white/5 border border-white/10 text-white font-bold py-3.5 rounded-[1rem] text-[14px] hover:bg-white/10 transition-all active:scale-95 flex justify-center items-center gap-2">
+                              {/* Simple Apple SVG */}
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.05 2.25.68 2.92.68.65 0 1.69-.76 3.23-.65 1.3.06 2.4.45 3.19 1.15-2.3 1.34-1.93 4.21.32 5.09-1.04 2.76-2.48 5-4.22 6.7M12.03 7.25c-.24-2.22 1.63-4.05 3.31-4.25.32 2.37-2.02 4.1-3.31 4.25z" />
+                              </svg>
+                              Apple
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+
+                  {/* Step 3: OTP */}
+                  {(step === 'otp' || step === 'loading') && (
+                    <motion.div layout className={`flex flex-col bg-black/40 border border-white/[0.08] rounded-[1.5rem] p-6 overflow-hidden transition-all duration-500 ${step === 'otp' ? 'shadow-[0_0_30px_rgba(168,85,247,0.15)] ring-1 ring-purple-500/30' : ''}`}>
+                      <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all duration-500 ${step === 'otp' ? 'bg-purple-500 text-white shadow-[0_0_20px_rgba(168,85,247,0.6)]' : 'bg-indigo-500 text-white shadow-[0_0_20px_rgba(99,102,241,0.5)]'}`}>
+                          {step === 'loading' ? <Loader2 size={20} className="animate-spin" /> : <Shield size={20} />}
+                        </div>
+                        <h2 className={`font-bold text-white tracking-wide transition-all duration-500 ${step === 'loading' ? 'text-[16px]' : 'text-[20px]'}`}>
+                          {step === 'loading' ? 'Creating Account...' : (isPhoneMode ? 'Verify Phone' : 'Verify Email')}
+                        </h2>
+                      </div>
+                      <AnimatePresence>
+                        {step === 'otp' && (
+                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex flex-col gap-6 mt-5">
+                            <p className="text-white/40 text-[13px] font-medium leading-relaxed">We've sent a 6-digit code to <span className="text-white font-bold">{email}</span></p>
+                            <div className="flex justify-between w-full gap-2">
+                              {otp.map((digit, i) => (
+                                <input
+                                  key={i}
+                                  id={`otp-${i}`}
+                                  type="text"
+                                  maxLength={1}
+                                  value={digit}
+                                  onChange={(e) => handleOtpChange(i, e.target.value)}
+                                  onPaste={handlePaste}
+                                  className="w-10 h-10 bg-black/50 border border-white/10 rounded-[0.5rem] text-center text-[18px] font-bold text-white outline-none focus:border-purple-400 focus:bg-purple-500/10 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)] transition-all shadow-inner"
+                                  autoFocus={i === 0}
+                                />
+                              ))}
+                            </div>
+                            <button className="text-purple-400 font-bold text-[12px] w-fit hover:text-purple-300 transition-colors outline-none cursor-pointer">
+                              {timeLeft > 0 ? `Resend code in ${timeLeft}s` : 'Resend code'}
+                            </button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  )}
+
+                </motion.div>
+              )}
+
+              {/* Step 4: Profile Details */}
+              {(step === 'profile' || step === 'saving') && (
+                <motion.div key="profile" layout initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="flex flex-col gap-5 w-full max-w-[400px]">
+                  <motion.div layout className={`flex flex-col bg-black/40 border border-white/[0.08] rounded-[1.5rem] p-6 overflow-hidden transition-all duration-500 shadow-[0_0_30px_rgba(56,189,248,0.15)] ring-1 ring-sky-500/30`}>
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all duration-500 bg-sky-500 text-white shadow-[0_0_20px_rgba(56,189,248,0.6)]`}>
+                        {step === 'saving' ? <Loader2 size={20} className="animate-spin" /> : <User size={20} />}
+                      </div>
+                      <h2 className="font-bold text-white tracking-wide text-[20px]">
+                        {step === 'saving' ? 'Creating Identity...' : 'Profile Details'}
+                      </h2>
+                    </div>
+
+                    <div className="flex flex-col gap-4 relative z-10 w-full">
+                      <div className="flex flex-col gap-1.5 w-full">
+                        <label className="text-[12px] font-bold tracking-widest text-white/40 uppercase ml-2">Display Name</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Srikant"
+                          value={displayName}
+                          onChange={(e) => setDisplayName(e.target.value)}
+                          className="w-full bg-black/50 border border-white/10 rounded-[1rem] px-5 py-3.5 text-[16px] font-medium tracking-wide text-white outline-none focus:border-sky-400 focus:bg-sky-500/5 transition-all placeholder:text-white/20"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5 w-full">
+                        <label className="text-[12px] font-bold tracking-widest text-white/40 uppercase ml-2">Username</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. @srikant_v"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          className="w-full bg-black/50 border border-white/10 rounded-[1rem] px-5 py-3.5 text-[16px] font-medium tracking-wide text-white outline-none focus:border-sky-400 focus:bg-sky-500/5 transition-all placeholder:text-white/20"
+                        />
+                      </div>
+                      <div className="flex gap-4 w-full">
+                        <div className="flex flex-col gap-1.5 flex-[2]">
+                          <label className="text-[12px] font-bold tracking-widest text-white/40 uppercase ml-2">City</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. New York"
+                            value={city}
+                            onChange={(e) => setCity(e.target.value)}
+                            className="w-full bg-black/50 border border-white/10 rounded-[1rem] px-5 py-3.5 text-[16px] font-medium tracking-wide text-white outline-none focus:border-sky-400 focus:bg-sky-500/5 transition-all placeholder:text-white/20"
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1.5 flex-[1]">
+                          <label className="text-[12px] font-bold tracking-widest text-white/40 uppercase ml-2">Age</label>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            placeholder="e.g. 24"
+                            value={age}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === '' || /^[0-9\b]+$/.test(val)) {
+                                setAge(val);
+                              }
+                            }}
+                            className="w-full bg-black/50 border border-white/10 rounded-[1rem] px-5 py-3.5 text-[16px] font-medium tracking-wide text-white outline-none focus:border-sky-400 focus:bg-sky-500/5 transition-all placeholder:text-white/20 text-center"
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => setStep('saving')}
+                        disabled={!displayName || !username || !city || !age || step === 'saving'}
+                        className="w-full bg-sky-500 text-white font-bold py-4 rounded-[1rem] text-[16px] shadow-[0_0_20px_rgba(56,189,248,0.4)] hover:scale-[1.02] hover:bg-sky-400 transition-all active:scale-95 disabled:opacity-30 disabled:hover:scale-100 disabled:shadow-none mt-4 outline-none"
+                      >
+                        Proceed
+                      </button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+
+        {isSuccess && (
+          <motion.div key="success" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center w-full h-full relative z-50">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0, filter: 'blur(10px)' }}
+              animate={{
+                scale: [0.8, 1.2, 50],
+                opacity: [0, 1, 0],
+                filter: ['blur(10px)', 'blur(0px)', 'blur(20px)']
+              }}
+              transition={{ duration: 1.5, times: [0, 0.5, 1], ease: "easeInOut" }}
+              className="text-violet-500 drop-shadow-[0_0_60px_rgba(139,92,246,1)]"
+            >
+              <VisionIcon size={120} />
+            </motion.div>
+          </motion.div>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+};
+
 export default function App() {
+  const [showOnboarding, setShowOnboarding] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPulsing, setIsPulsing] = useState(false);
   const [selectedVote, setSelectedVote] = useState(null);
-  const [activeTab, setActiveTab] = useState('home');
+  const [navHistory, setNavHistory] = useState([{ tab: 'home', profile: null }]);
   const [isLogoGlowing, setIsLogoGlowing] = useState(false);
+  const activeNav = navHistory[navHistory.length - 1];
+  const activeTab = activeNav.tab;
+  const viewedProfile = activeNav.profile;
+
+  const navigateTo = (tab, profile = null) => {
+    setNavHistory(prev => [...prev, { tab, profile }]);
+  };
+
+  const goBack = () => {
+    setNavHistory(prev => prev.length <= 1 ? prev : prev.slice(0, -1));
+  };
+
+  const resetNav = (tab) => {
+    setNavHistory([{ tab, profile: null }]);
+  };
 
   // Lifted Profile State
   const [userName, setUserName] = useState('Srikant');
+  const [userAura, setUserAura] = useState(5420);
+  const [userHandle, setUserHandle] = useState('');
+  const [userCity, setUserCity] = useState('');
   const [hasChangedName, setHasChangedName] = useState(false);
 
   // Social State
@@ -1343,6 +2133,9 @@ export default function App() {
   const [isNetworkModalOpen, setIsNetworkModalOpen] = useState(false);
   const [networkType, setNetworkType] = useState('Following');
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [isBadgesModalOpen, setIsBadgesModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isMetricsModalOpen, setIsMetricsModalOpen] = useState(false);
 
   const currentPrediction = PREDICTIONS[currentIndex];
   const isLiked = likedPredictions[currentPrediction.id];
@@ -1352,6 +2145,12 @@ export default function App() {
       ...prev,
       [currentPrediction.id]: !prev[currentPrediction.id]
     }));
+  };
+
+  const handleUserClick = (userProfile) => {
+    setIsNetworkModalOpen(false);
+    setIsCommentsModalOpen(false);
+    navigateTo('profile', userProfile);
   };
 
   const openNetworkInfo = (type) => {
@@ -1400,7 +2199,25 @@ export default function App() {
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-[#020202] text-white flex justify-center w-full font-sans selection:bg-indigo-500/30">
-      <div className="w-full max-w-[480px] relative h-[100dvh] overflow-hidden border-x border-white/[0.04] bg-[#020202] flex flex-col shadow-2xl">
+      {showOnboarding && (
+        <OnboardingScreen onComplete={(profileData) => {
+          if (profileData && profileData.displayName) {
+            setUserName(profileData.displayName);
+            if (profileData.username) {
+              setUserHandle(profileData.username.startsWith('@') ? profileData.username : `@${profileData.username}`);
+            }
+            if (profileData.city) {
+              setUserCity(profileData.city);
+            }
+          }
+          setShowOnboarding(false);
+        }} />
+      )}
+
+      <div
+        className={`w-full max-w-[480px] relative h-[100dvh] overflow-hidden border-x border-white/[0.04] bg-[#020202] flex flex-col shadow-2xl transition-opacity duration-1000 ${showOnboarding ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'
+          }`}
+      >
         <AmbientBackground />
 
         <header className="relative z-40 pt-10 px-6">
@@ -1442,7 +2259,7 @@ export default function App() {
 
           <AnimatePresence mode="wait">
             {activeTab === 'home' ? (
-              <HomeDiscoveryScreen key="home" userName={userName} onPredictPress={() => setActiveTab('predict')} />
+              <HomeDiscoveryScreen key="home" userName={userName} onPredictPress={() => navigateTo('predict')} />
             ) : activeTab === 'predict' ? (
               <motion.div
                 key={currentPrediction.id}
@@ -1458,6 +2275,13 @@ export default function App() {
                   className="relative w-full rounded-[2.5rem] p-6 sm:p-8 bg-gradient-to-b from-white/[0.06] to-white/[0.01] border border-white/[0.04] shadow-[0_24px_64px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.15),0_0_80px_rgba(79,70,229,0.08)] backdrop-blur-[40px]"
                 >
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] h-[85%] bg-indigo-400/10 blur-[90px] rounded-full pointer-events-none" />
+
+                  {navHistory.length > 1 && (
+                    <button onClick={goBack} className="absolute -top-14 left-0 flex items-center gap-2 text-white/50 hover:text-white transition-colors group border border-white/10 rounded-full px-4 py-2 hover:bg-white/5 bg-black/40 outline-none tap-highlight-transparent z-50">
+                      <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Back</span>
+                    </button>
+                  )}
 
                   <div className="flex justify-between items-start mb-10 relative z-10 w-full px-1">
                     {(() => {
@@ -1476,7 +2300,7 @@ export default function App() {
                           </motion.div>
                           <div
                             className="flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={() => setActiveTab('profile')}
+                            onClick={() => handleUserClick({ name: currentPrediction.creator, username: `@${currentPrediction.creator.toLowerCase().replace(/\s/g, '')}`, aura: currentPrediction.creatorAura || 1200 })}
                           >
                             <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center shrink-0">
                               <User size={10} className="text-white/70" />
@@ -1640,20 +2464,28 @@ export default function App() {
                 </motion.div>
               </motion.div>
             ) : activeTab === 'create' ? (
-              <CreatePredictionScreen key="create" onPublish={() => setActiveTab('home')} />
+              <CreatePredictionScreen key="create" onPublish={() => resetNav('home')} />
             ) : activeTab === 'leaderboard' ? (
               <LeaderboardScreen key="leaderboard" />
             ) : activeTab === 'activity' ? (
               <ActivityScreen key="activity" />
             ) : activeTab === 'profile' ? (
               <ProfileScreen
-                key="profile"
-                name={userName}
+                key={`profile-${viewedProfile?.name || userName}`}
+                name={viewedProfile ? viewedProfile.name : userName}
                 setName={setUserName}
+                username={viewedProfile ? viewedProfile.username : userHandle}
+                city={viewedProfile ? (viewedProfile.city || '') : userCity}
                 hasChangedName={hasChangedName}
                 setHasChangedName={setHasChangedName}
                 onOpenNetwork={openNetworkInfo}
                 onOpenRating={() => setIsRatingModalOpen(true)}
+                onOpenBadges={() => setIsBadgesModalOpen(true)}
+                onOpenSettings={() => setIsSettingsModalOpen(true)}
+                onOpenMetrics={() => setIsMetricsModalOpen(true)}
+                isReadOnly={!!viewedProfile}
+                onBack={navHistory.length > 1 ? goBack : undefined}
+                aura={viewedProfile ? viewedProfile.aura : userAura}
               />
             ) : null}
           </AnimatePresence>
@@ -1669,7 +2501,7 @@ export default function App() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => resetNav(tab.id)}
                   className={`relative z-10 flex items-center justify-center outline-none group tap-highlight-transparent transition-all duration-500 ease-out ${isActive ? 'px-5 py-3.5 w-auto' : 'flex-1 py-3.5'
                     }`}
                 >
@@ -1711,15 +2543,29 @@ export default function App() {
           isOpen={isCommentsModalOpen}
           onClose={() => setIsCommentsModalOpen(false)}
           prediction={currentPrediction}
+          onUserClick={handleUserClick}
         />
         <NetworkModal
           isOpen={isNetworkModalOpen}
           onClose={() => setIsNetworkModalOpen(false)}
           type={networkType}
+          onUserClick={handleUserClick}
         />
         <RatingLadderModal
           isOpen={isRatingModalOpen}
           onClose={() => setIsRatingModalOpen(false)}
+        />
+        <BadgesModal
+          isOpen={isBadgesModalOpen}
+          onClose={() => setIsBadgesModalOpen(false)}
+        />
+        <SettingsModal
+          isOpen={isSettingsModalOpen}
+          onClose={() => setIsSettingsModalOpen(false)}
+        />
+        <MetricsModal
+          isOpen={isMetricsModalOpen}
+          onClose={() => setIsMetricsModalOpen(false)}
         />
       </div>
     </div>
