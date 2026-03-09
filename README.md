@@ -1,6 +1,8 @@
 <div align="center">
-  <img src="https://i.ibb.co/6803hQe/vision-logo-placeholder.png" alt="Vision Logo" width="120" />
+  <img width="1357" height="406" alt="image" src="https://github.com/user-attachments/assets/b63c1f64-ee31-4812-b7e8-d3802c54457d" />
 </div>
+
+
 
 # VISION
 
