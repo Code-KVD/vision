@@ -1095,7 +1095,7 @@ const MetricsModal = ({ isOpen, onClose }) => {
                     <h3 className="text-[18px] font-bold text-white tracking-wide">Aura Points</h3>
                   </div>
                   <p className="text-white/60 text-[14px] leading-relaxed mb-6 relative z-10">
-                    Aura is your cumulative Experience Points (XP). It measures how active, influential, and social you are on Vision. <strong className="text-white/90">Aura only goes up.</strong> You can never lose Aura. It dictates your Prestige Rank.
+                    Aura is your overall social and gaming presence (XP). It measures how active, influential, and right you are on Vision. <strong className="text-white/90">Aura goes up AND down.</strong> You gain it for good predictions, followers, and engagement, but lose it for bad predictions or losing followers. It dictates your Prestige Rank.
                   </p>
                   <div className="flex flex-col gap-3 relative z-10">
                     <div className="flex justify-between items-center text-[13px] border-b border-white/5 pb-2">
@@ -1103,16 +1103,24 @@ const MetricsModal = ({ isOpen, onClose }) => {
                       <span className="text-yellow-400 font-bold">+50</span>
                     </div>
                     <div className="flex justify-between items-center text-[13px] border-b border-white/5 pb-2">
-                      <span className="text-white/40">Sharing a Prediction Link</span>
-                      <span className="text-yellow-400 font-bold">+25</span>
+                      <span className="text-white/40">Voting/Correct Prediction</span>
+                      <span className="text-yellow-400 font-bold">+10 to +30</span>
                     </div>
                     <div className="flex justify-between items-center text-[13px] border-b border-white/5 pb-2">
-                      <span className="text-white/40">Voting on a Prediction</span>
-                      <span className="text-yellow-400 font-bold">+10</span>
-                    </div>
-                    <div className="flex justify-between items-center text-[13px]">
                       <span className="text-white/40">Receiving a Comment Like</span>
                       <span className="text-yellow-400 font-bold">+2</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[13px] border-b border-white/5 pb-2">
+                      <span className="text-white/40">Losing a Follower</span>
+                      <span className="text-red-400 font-bold">-5</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[13px] border-b border-white/5 pb-2">
+                      <span className="text-white/40">Incorrect Prediction</span>
+                      <span className="text-red-400 font-bold">-15</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[13px]">
+                      <span className="text-white/40">Moderator Flag (Needs Changes)</span>
+                      <span className="text-red-400 font-bold">-20</span>
                     </div>
                   </div>
                 </div>
@@ -1125,7 +1133,7 @@ const MetricsModal = ({ isOpen, onClose }) => {
                     <h3 className="text-[18px] font-bold text-white tracking-wide">Forecast Rating</h3>
                   </div>
                   <p className="text-white/60 text-[14px] leading-relaxed mb-6 relative z-10">
-                    Forecast Rating is a competitive matchmaking score (ELO) that measures your sheer predictive skill. Unlike Aura, <strong className="text-white/90">Forecast Rating goes up AND down</strong>. It's fluid and high-stakes.
+                    Forecast Rating is pure gameplay. It's a competitive matchmaking score (ELO) that measures your analytical skills for making a prediction and getting it right. <strong className="text-white/90">Forecast Rating goes up AND down</strong>. It's fluid, intellectual, and high-stakes.
                   </p>
                   <div className="flex flex-col gap-3 relative z-10">
                     <div className="flex justify-between items-start text-[13px] border-b border-white/5 pb-2">

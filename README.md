@@ -27,13 +27,13 @@ We merge the addictive progression mechanics of gaming (XP, leaderboards, unlock
 ## 🔮 Core Mechanics
 
 ### 1. The Aura Engine (XP & Engagement)
-Aura is the lifeblood of your profile—a reflection of your influence and activity. You earn Aura by creating compelling predictions, casting votes, defending your stance in the comments, and onboarding new users. 
-* **Aura only goes up.** It tracks your sheer social impact.
+Aura is the lifeblood of your profile—a reflection of your influence, activity, and overall social standing. You earn Aura by creating compelling predictions, getting your predictions right, generating followers, and receiving engagement. 
+* **Aura goes up AND down.** You gain Aura for positive engagement and correct predictions, but lose it for incorrect predictions, losing followers, or having a prediction flagged by moderators.
 * Climbing the **Aura Ladder** (*Novice → Seeker → Strategist → Sage → Oracle → Visionary*) unlocks exclusive profile traits, badges, and glowing UI cosmetics. 
 
 ### 2. Forecast Rating (ELO & Accuracy)
-While Aura shows how active you are, your Forecast Rating exposes how *right* you are. It is a zero-sum metric.
-* **Forecast Rating is fluid.** You lose points when you are wrong and gain points when you are right.
+While Aura shows your overall status, your Forecast Rating exposes purely how *analytical* you are. It is a competitive matchmaking score.
+* **Forecast Rating goes up AND down.** It measures your sheer analytical skills and predictive ability.
 * **Risk vs. Reward:** Correctly predicting an underdog or "Hot Take" event grants massive rating boosts (+65), while playing it safe on widely agreed outcomes yields smaller gains (+5). 
 
 ### 3. The Visionary State
